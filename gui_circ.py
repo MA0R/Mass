@@ -26,29 +26,18 @@ class MyFrame2 ( wx.Frame ):
 		gbSizer2.SetFlexibleDirection( wx.BOTH )
 		gbSizer2.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
-		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Masses:", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText1.Wrap( -1 )
-		gbSizer2.Add( self.m_staticText1, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
-		
-		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Readings", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText3.Wrap( -1 )
-		gbSizer2.Add( self.m_staticText3, wx.GBPosition( 0, 2 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
-		
-		m_comboBox3Choices = [ u"1", u"2", u"3", u"4", u"5", u"2" ]
-		self.m_comboBox3 = wx.ComboBox( self, wx.ID_ANY, u"4", wx.DefaultPosition, wx.DefaultSize, m_comboBox3Choices, 0 )
-		self.m_comboBox3.SetSelection( 3 )
-		gbSizer2.Add( self.m_comboBox3, wx.GBPosition( 0, 3 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
-		
 		self.m_button4 = wx.Button( self, wx.ID_ANY, u"Compute", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button4, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		gbSizer2.Add( self.m_button4, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
 		self.m_button5 = wx.Button( self, wx.ID_ANY, u"Return", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button5, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		gbSizer2.Add( self.m_button5, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
-		m_comboBox1Choices = [ u"1", u"2", u"3", u"4", u"5" ]
-		self.m_comboBox1 = wx.ComboBox( self, wx.ID_ANY, u"4", wx.DefaultPosition, wx.DefaultSize, m_comboBox1Choices, 0 )
-		self.m_comboBox1.SetSelection( 3 )
-		gbSizer2.Add( self.m_comboBox1, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		self.m_button7 = wx.Button( self, wx.ID_ANY, u"Run auto", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer2.Add( self.m_button7, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
+		m_comboBox3Choices = [ u"ASRL1::INSTR", u"ASRL2::INSTR", u"ASRL3::INSTR" ]
+		self.m_comboBox3 = wx.ComboBox( self, wx.ID_ANY, u"ASRL2::INSTR", wx.DefaultPosition, wx.DefaultSize, m_comboBox3Choices, 0 )
+		gbSizer2.Add( self.m_comboBox3, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
 		self.m_grid2 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
@@ -110,7 +99,7 @@ class MyFrame2 ( wx.Frame ):
 		# Connect Events
 		self.m_button4.Bind( wx.EVT_BUTTON, self.on_compute )
 		self.m_button5.Bind( wx.EVT_BUTTON, self.on_return )
-		self.m_comboBox1.Bind( wx.EVT_TEXT_ENTER, self.on_enter_masses )
+		self.m_button7.Bind( wx.EVT_BUTTON, self.on_run_auto )
 	
 	def __del__( self ):
 		pass
@@ -123,7 +112,7 @@ class MyFrame2 ( wx.Frame ):
 	def on_return( self, event ):
 		event.Skip()
 	
-	def on_enter_masses( self, event ):
+	def on_run_auto( self, event ):
 		event.Skip()
 	
 

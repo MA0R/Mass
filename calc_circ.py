@@ -6,11 +6,11 @@ import numpy as np #Numpy module will be used for fast handling of linear algebr
 from numpy.linalg import inv
 import csv
 
-def generate_m(num_readings,num_masses,order_in_t,times=None):
+def generate_m(num_readings,num_masses,order_in_t,times=[]):
     """Generates matrix M based on number of readings,
     number of measured objects, order of time polynomial
     and the measurement times."""
-    if times == None: #Fill time as simple ascending array, [1,2,3..]
+    if times == []: #Fill time as simple ascending array, [1,2,3..]
         times = np.arrange(num_readings)
     else: #Ensure that time is a numpy array object.
         times = np.array(times)
@@ -40,6 +40,8 @@ def extract_file(filename):
     masses = []
     times = []
     for row in rows[3:]:
+        if row[0] in (None,""):#If it is None, or empty.
+            break #Stop collecting data, csv file has results beyond this point or is empty.
         floats = [float(m) for m in row]
         temp_mass = []
         for i in range(len(floats)): #not a very nice line but need to know if i is even or odd

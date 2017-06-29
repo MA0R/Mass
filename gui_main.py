@@ -29,7 +29,7 @@ class MyFrame1 ( wx.Frame ):
 		self.m_grid1 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
-		self.m_grid1.CreateGrid( 30, 5 )
+		self.m_grid1.CreateGrid( 30, 4 )
 		self.m_grid1.EnableEditing( True )
 		self.m_grid1.EnableGridLines( True )
 		self.m_grid1.EnableDragGridSize( False )
@@ -39,11 +39,10 @@ class MyFrame1 ( wx.Frame ):
 		self.m_grid1.EnableDragColMove( False )
 		self.m_grid1.EnableDragColSize( True )
 		self.m_grid1.SetColLabelSize( 30 )
-		self.m_grid1.SetColLabelValue( 0, u"Mass 1" )
-		self.m_grid1.SetColLabelValue( 1, u"Mass 2" )
-		self.m_grid1.SetColLabelValue( 2, u"Difference (g)" )
-		self.m_grid1.SetColLabelValue( 3, u"Uncert (ug)" )
-		self.m_grid1.SetColLabelValue( 4, u"Residual (ug)" )
+		self.m_grid1.SetColLabelValue( 0, u"Masses" )
+		self.m_grid1.SetColLabelValue( 1, u"Difference (g)" )
+		self.m_grid1.SetColLabelValue( 2, u"Uncert (ug)" )
+		self.m_grid1.SetColLabelValue( 3, u"Residual (ug)" )
 		self.m_grid1.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Rows
