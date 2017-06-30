@@ -18,7 +18,7 @@ import wx.grid
 class MyFrame2 ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 912,265 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 913,422 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -88,7 +88,39 @@ class MyFrame2 ( wx.Frame ):
 		
 		# Cell Defaults
 		self.m_grid2.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		gbSizer2.Add( self.m_grid2, wx.GBPosition( 2, 0 ), wx.GBSpan( 1, 7 ), wx.ALL, 5 )
+		gbSizer2.Add( self.m_grid2, wx.GBPosition( 2, 0 ), wx.GBSpan( 1, 6 ), wx.ALL, 5 )
+		
+		self.m_grid4 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		
+		# Grid
+		self.m_grid4.CreateGrid( 5, 3 )
+		self.m_grid4.EnableEditing( True )
+		self.m_grid4.EnableGridLines( True )
+		self.m_grid4.EnableDragGridSize( False )
+		self.m_grid4.SetMargins( 0, 0 )
+		
+		# Columns
+		self.m_grid4.SetColSize( 0, 120 )
+		self.m_grid4.SetColSize( 1, 120 )
+		self.m_grid4.SetColSize( 2, 120 )
+		self.m_grid4.EnableDragColMove( False )
+		self.m_grid4.EnableDragColSize( True )
+		self.m_grid4.SetColLabelSize( 30 )
+		self.m_grid4.SetColLabelValue( 0, u"Item" )
+		self.m_grid4.SetColLabelValue( 1, u"Value" )
+		self.m_grid4.SetColLabelValue( 2, u"Uncert" )
+		self.m_grid4.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Rows
+		self.m_grid4.EnableDragRowSize( True )
+		self.m_grid4.SetRowLabelSize( 80 )
+		self.m_grid4.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Label Appearance
+		
+		# Cell Defaults
+		self.m_grid4.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		gbSizer2.Add( self.m_grid4, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 3 ), wx.ALL, 5 )
 		
 		
 		self.SetSizer( gbSizer2 )

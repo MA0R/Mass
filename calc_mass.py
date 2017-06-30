@@ -29,12 +29,15 @@ def extract_file(filename):
     for row in rows[2:]:
         #First ensure there are no spaces:
         name = row[0].replace(" ","")
+        name = name.replace('+','-+')
         sub_list = name.split('-') #Array of mass names.
         named_diffs.append(sub_list)
         #At this stage, name1+name2 is parsed as a single name, while:
         #name1-name2-name3 for example is split into seperate bits.
-        diffs.append(float(row[1]))#Array of float differences.
-        uncert.append(float(row[2]))
+        diffs.append(float(row[1].replace(' ','')))#Array of float differences.
+        uncert.append(float(row[2].replace(' ','')))
+        sub_list = name.replace('+','')
+        sub_list = sub_list.split('-')
         masses = masses + [n for n in sub_list if n not in masses]
         #This list comprehension is equivalent to the set statement:
         #{all n such that n is in sublist, and not already in masses}
@@ -53,13 +56,20 @@ def generate_m(named_diffs,diffs,masses):
     shape = (len(diffs), len(masses))
     M = np.zeros(shape) #generate an array of zeros in memory.
     for i in range(len(diffs)): #i takes index of rows.
-        sub_list = named_diffs[i]
+        sub_list = named_diffs[i] #A set of named diffs, such as [50,+50,100]
         for k in range(len(sub_list)):
-            idx = masses.index(sub_list[k])
-            if k == 0:
-                M[i][idx] = 1
+            mass = sub_list[k] #pics up one of the masses
+            if mass[0] == "+": #if the first character is the plus sign:
+                #Search mass array for the mass name (without the plus sign).
+                idx = masses.index(mass.replace('+',''))
+                M[i][idx] = 1 #put a positive sign in the corresponding spot in M
             else:
-                M[i][idx] = -1
+                #If there is no minus sign
+                idx = masses.index(sub_list[k])
+                if k == 0: #And if this is the first mass in the list
+                    M[i][idx] = 1 #It is positive.
+                else: #Otherwise if it is after the first mass
+                    M[i][idx] = -1 #It is negative.
     #Hand-inputted matrix only for testing:
     m = [
         [1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -143,11 +153,11 @@ def analyse_file(filename):
     M = generate_m(named_diffs,diffs,masses)
     b,R0,psi_bmeas = analysis(M,diffs,uncert)
     Ub,psi_b = buoyancy_uncert(M,b,psi_bmeas)
-    #print(tr(np.array([b,np.diag(psi_bmeas),Ub])))
-    #print(R0)
-    #print(sum(R0**2))
+    print(['Mass name','Value (g)','Meas uncert (ug)','uncert with buoyancy corr. (ug)'])
+    print(tr(np.array([masses,b,np.diag(psi_bmeas),Ub])))
+
 if __name__ == "__main__":
-    d = analyse_file('1.csv')
+    d = analyse_file('2.csv')
 
 
     
