@@ -7,13 +7,13 @@ import wx.xrc
 import wx.grid
 import numpy as np
 import pywxgrideditmixin #Mixing to allow ctrl+v adn ctr+c etc for table.
-import time #used for a time stamp in file name
+import time #Used for a time stamp in file name.
 import csv #For saving the csv data files, and loading csv data files.
-import os.path
+import os.path #For joining some file path names.
 
 import gui_main #Gui of the main parent table.
 import calc_mass #Final least squares for mass calculations.
-from pop_up import Circ_Controller #circullar controller
+from pop_up import Circ_Controller #Circullar controller
 
 class Controller(gui_main.MyFrame1):
     def __init__(self, parent):
@@ -22,22 +22,27 @@ class Controller(gui_main.MyFrame1):
         self.m_grid1.__init_mixin__()
         self.Show(True)
         self.results = [[0],[0],[0]]
-        self.new = None #the pop up window for circular algorithm handling.
+        self.new = None #The pop up window for circular algorithm handling.
         
     def on_plus_row(self, event):
         self.add_rows(1,self.m_grid1)
         self.Layout()
+        
     def add_rows(self,n,grid):
         grid.AppendRows(n, True)
         
     def on_minus_row(self, event):
         self.minus_rows(1,self.m_grid1)
         self.Layout()
+        
     def minus_rows(self,n,grid):
         last_position = grid.GetNumberRows() -1
         grid.DeleteRows(last_position-n+1,n)
         
     def on_row_options(self, event):
+        """
+        Read selected rows, and send the mass names used to the circular weighing gui.
+        """
         selected_rows = self.m_grid1.GetSelectedRows()
         self.new = Circ_Controller(self)
         rows = selected_rows
@@ -86,7 +91,7 @@ class Controller(gui_main.MyFrame1):
             named_diff = self.m_grid1.GetCellValue(row,0)
             if named_diff not in ('',' ',u'',u' ',None): #So if it is not an empty segment.
                 string_diffs.append(named_diff)
-                #ensure there are no spaces floating around
+                #Ensure there are no spaces floating around:
                 named_diff = named_diff.replace(" ","")
                 #This next step stores information seemingly incorrectly,
                 #the string is split at thte "-" signs so we replace each "+"
@@ -134,33 +139,43 @@ class Controller(gui_main.MyFrame1):
             print("Cannot run, no data loaded")
         
     def present_results(self):
+        """Put results into the results grid."""
         results = np.transpose(np.array(self.results))
         self.rows_to_grid(results,self.m_grid3)
         
-    def on_load_file(self,event):
+    def get_file_name(self):
+        """Uses the wx file navigator to select a file, and then opens.
+        Ignores first two rows in file."""
         #More wild card options are available like this:
         #wildcard = "Poject source (*.csv; *.xls; *.xlsx; *.xlsm)|*.csv;*.xls; *.xlsx; *.xlsm|" \
         # "All files (*.*)|*.*"
         #But currently only interested in csv files:
         wildcard = "Poject source (*.csv)|*.csv|All files (*.*)|*.*"
-        
+        proj_file = None
         dlg = wx.FileDialog(self, "Choose a project file", 'dirname,space filler', "",
         wildcard, wx.OPEN | wx.MULTIPLE)
-
+        
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
-            proj_file = os.path.join(dirname, filename)
         dlg.Destroy()
-        with open(proj_file,'r') as f:
-            reader = csv.reader(f,delimiter=',')
-            rows = []
-            for row in reader:
-                rows.append(row)
-                #Note the first two rows are just header.
-            self.rows_to_grid(rows[2:],self.m_grid1)
+        return [dirname,filename]
+    
+    def on_load_file(self,event):
+        dirname,filename = self.get_file_name()
+        proj_file = os.path.join(dirname, filename)
+        
+        if proj_file != None:
+            with open(proj_file,'r') as f:
+                reader = csv.reader(f,delimiter=',')
+                rows = []
+                for row in reader:
+                    rows.append(row)
+                    #Note the first two rows are just header.
+                self.rows_to_grid(rows[2:],self.m_grid1)
             
     def rows_to_grid(self,rows,grid):
+        """Put a list of rows into a specified grid. Enlarges or shrinks the grid to match the rows."""
         g_n = grid.GetNumberRows()
         r_n = len(rows)
         if g_n-r_n > 0:
@@ -173,9 +188,29 @@ class Controller(gui_main.MyFrame1):
         self.Layout()
         
     def on_save_results(self,event):
-        print(self.results) #can acess the class variable.
+        dirname,filename = self.get_file_name()
+        proj_file = os.path.join(dirname, filename)
+        if proj_file != None:
+            with open(proj_file,'wb') as f:
+                writer = csv.writer(f,delimiter=',')
+                writer.writerow(['Results file'])
+                writer.writerow(['Masses','Difference (g)','Uncert (ug)','Residual (ug)'])
+                writer.writerows(np.transpose(self.results))
+            data_name = "lesq_"+filename
+            data_file = os.path.join(dirname, data_name)
+
+            with open(data_file,'wb') as f:
+                writer = csv.writer(f,delimiter=',')
+                writer.writerow(['Data file'])
+                writer.writerow(['Masses','Difference (g)','Uncert (ug)','Residual (ug)'])
+                for r in range(self.m_grid1.GetNumberRows()):
+                    row = []
+                    for c in range(self.m_grid1.GetNumberCols()):
+                        row.append(self.m_grid1.GetCellValue(r,c))
+                    writer.writerow(row)
 
 if __name__ == "__main__":
+    #Should usually be run as main, but can be run as a child too.
     app = wx.App()
     Controller(None)
     app.MainLoop()

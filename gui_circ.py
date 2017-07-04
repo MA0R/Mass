@@ -18,7 +18,7 @@ import wx.grid
 class MyFrame2 ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 913,422 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 913,733 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -32,12 +32,25 @@ class MyFrame2 ( wx.Frame ):
 		self.m_button5 = wx.Button( self, wx.ID_ANY, u"Return", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gbSizer2.Add( self.m_button5, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
+		self.m_button9 = wx.Button( self, wx.ID_ANY, u"Show adresses", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer2.Add( self.m_button9, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
 		self.m_button7 = wx.Button( self, wx.ID_ANY, u"Run auto", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button7, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		gbSizer2.Add( self.m_button7, wx.GBPosition( 1, 4 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
+		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Sop readings", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer2.Add( self.m_button10, wx.GBPosition( 1, 5 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
 		m_comboBox3Choices = [ u"ASRL1::INSTR", u"ASRL2::INSTR", u"ASRL3::INSTR" ]
 		self.m_comboBox3 = wx.ComboBox( self, wx.ID_ANY, u"ASRL2::INSTR", wx.DefaultPosition, wx.DefaultSize, m_comboBox3Choices, 0 )
 		gbSizer2.Add( self.m_comboBox3, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
+		m_comboBox2Choices = [ u"Automatic", u"Mostly-auto" ]
+		self.m_comboBox2 = wx.ComboBox( self, wx.ID_ANY, u"Automatic", wx.DefaultPosition, wx.DefaultSize, m_comboBox2Choices, 0 )
+		gbSizer2.Add( self.m_comboBox2, wx.GBPosition( 1, 2 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
+		self.m_textCtrl1 = wx.TextCtrl( self, wx.ID_ANY, u"positions, 1,2,4...", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer2.Add( self.m_textCtrl1, wx.GBPosition( 1, 3 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
 		self.m_grid2 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
@@ -120,7 +133,11 @@ class MyFrame2 ( wx.Frame ):
 		
 		# Cell Defaults
 		self.m_grid4.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		gbSizer2.Add( self.m_grid4, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 3 ), wx.ALL, 5 )
+		gbSizer2.Add( self.m_grid4, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 4 ), wx.ALL, 5 )
+		
+		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2.Wrap( -1 )
+		gbSizer2.Add( self.m_staticText2, wx.GBPosition( 4, 0 ), wx.GBSpan( 1, 6 ), wx.ALL, 5 )
 		
 		
 		self.SetSizer( gbSizer2 )
@@ -131,7 +148,9 @@ class MyFrame2 ( wx.Frame ):
 		# Connect Events
 		self.m_button4.Bind( wx.EVT_BUTTON, self.on_compute )
 		self.m_button5.Bind( wx.EVT_BUTTON, self.on_return )
+		self.m_button9.Bind( wx.EVT_BUTTON, self.on_refresh_adresses )
 		self.m_button7.Bind( wx.EVT_BUTTON, self.on_run_auto )
+		self.m_button10.Bind( wx.EVT_BUTTON, self.on_stop_thread )
 	
 	def __del__( self ):
 		pass
@@ -144,7 +163,13 @@ class MyFrame2 ( wx.Frame ):
 	def on_return( self, event ):
 		event.Skip()
 	
+	def on_refresh_adresses( self, event ):
+		event.Skip()
+	
 	def on_run_auto( self, event ):
+		event.Skip()
+	
+	def on_stop_thread( self, event ):
 		event.Skip()
 	
 
