@@ -18,7 +18,7 @@ import wx.grid
 class MyFrame1 ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1134,735 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1089,735 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -44,29 +44,27 @@ class MyFrame1 ( wx.Frame ):
 		self.m_grid3 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
-		self.m_grid3.CreateGrid( 30, 5 )
+		self.m_grid3.CreateGrid( 30, 4 )
 		self.m_grid3.EnableEditing( True )
 		self.m_grid3.EnableGridLines( True )
 		self.m_grid3.EnableDragGridSize( False )
 		self.m_grid3.SetMargins( 0, 0 )
 		
 		# Columns
-		self.m_grid3.SetColSize( 0, 80 )
-		self.m_grid3.SetColSize( 1, 58 )
+		self.m_grid3.SetColSize( 0, 67 )
+		self.m_grid3.SetColSize( 1, 119 )
 		self.m_grid3.SetColSize( 2, 113 )
 		self.m_grid3.SetColSize( 3, 80 )
-		self.m_grid3.SetColSize( 4, 80 )
 		self.m_grid3.EnableDragColMove( False )
 		self.m_grid3.EnableDragColSize( True )
 		self.m_grid3.SetColLabelSize( 30 )
-		self.m_grid3.SetColLabelValue( 0, u"Nominal mass" )
-		self.m_grid3.SetColLabelValue( 1, u"Set ID" )
-		self.m_grid3.SetColLabelValue( 2, u"Value (g)" )
-		self.m_grid3.SetColLabelValue( 3, u"Uncert (ug)" )
-		self.m_grid3.SetColLabelValue( 4, u"95% cl (ug)" )
+		self.m_grid3.SetColLabelValue( 0, u"Name" )
+		self.m_grid3.SetColLabelValue( 1, u"Value (g)" )
+		self.m_grid3.SetColLabelValue( 2, u"Uncert (ug)" )
+		self.m_grid3.SetColLabelValue( 3, u"95% cl (ug)" )
+		self.m_grid3.SetColLabelValue( 4, wx.EmptyString )
 		self.m_grid3.SetColLabelValue( 5, wx.EmptyString )
 		self.m_grid3.SetColLabelValue( 6, wx.EmptyString )
-		self.m_grid3.SetColLabelValue( 7, wx.EmptyString )
 		self.m_grid3.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Rows

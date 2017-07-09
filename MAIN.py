@@ -13,7 +13,7 @@ import os.path #For joining some file path names.
 
 import gui_main #Gui of the main parent table.
 import calc_mass #Final least squares for mass calculations.
-from pop_up import Circ_Controller #Circullar controller
+from main_circ import Circ_Controller #Circullar controller
 
 class Controller(gui_main.MyFrame1):
     def __init__(self, parent):
@@ -79,20 +79,21 @@ class Controller(gui_main.MyFrame1):
         Extracts the data from the table, ensuring to remove
         unwanted spaces from the numbers and so on. 
         """
-        named_diffs = []
-        diffs = []
-        masses = []
-        uncrtnties = []
-        string_diffs = []
+        named_diffs = [] #The text differences, like '50','50s' corresponding to '50-50s'.
+        diffs = []       #The actual differences, as floats.
+        masses = []      #The names of the masses involved.
+        uncrtnties = []  #The uncertainties of the balances.
+        string_diffs = []#The full differences as strings such as '50-50s'
+        failed_rows = [] #Rows that did not have sufficient info.
         
         rows = self.m_grid1.GetNumberRows()
         for row in range(rows):
             #We have 3 cels to read.
-            named_diff = self.m_grid1.GetCellValue(row,0)
-            if named_diff not in ('',' ',u'',u' ',None): #So if it is not an empty segment.
+            named_diff = self.m_grid1.GetCellValue(row,0).replace(' ','')
+            diff = self.m_grid1.GetCellValue(row,1).replace(' ','')
+            uncert = self.m_grid1.GetCellValue(row,2).replace(' ','')
+            if all([named_diff,diff,uncert]): #So if none of those are empty.
                 string_diffs.append(named_diff)
-                #Ensure there are no spaces floating around:
-                named_diff = named_diff.replace(" ","")
                 #This next step stores information seemingly incorrectly,
                 #the string is split at thte "-" signs so we replace each "+"
                 #with a "-+", this means after splitting the mass that was positive
@@ -104,25 +105,27 @@ class Controller(gui_main.MyFrame1):
                 named_diff = named_diff.replace('+','-+')
                 named_diffs.append(named_diff.split('-'))
                 #the difference values as floats.
-                diff = float(self.m_grid1.GetCellValue(row,1).replace(' ',''))
+                diff = float(diff)
                 diffs.append(diff)
                 #Uncertianty values as floats.
-                uncert = float(self.m_grid1.GetCellValue(row,2).replace(' ',''))
+                uncert = float(uncert)
                 uncrtnties.append(uncert)
                 #Append to list of masses, if these mass names are new.
-                sub_list = named_diff.replace('+','') #remove plus signs now.
-                sub_list = sub_list.split('-') #Just mass names, no signs.
+                sub_list = named_diff.replace('+','') #remove plus signs, now it is mass names seperated by '-'.
+                sub_list = sub_list.split('-') #Just mass names, no signs, as an array.
                 masses = masses + [n for n in sub_list if n not in masses]
+            else:
+                failed_rows.append(row)
         diffs = np.array(diffs)
         uncrtnties = np.array(uncrtnties)
-        return [named_diffs,string_diffs,diffs,masses,uncrtnties]
+        return [named_diffs,string_diffs,diffs,masses,uncrtnties,failed_rows]
 
     def on_run(self,event):
         """
         Compute! uses extracted info from the tables and the calc_masses
         module for the analysis.
         """
-        named_diffs,string_diffs,diffs,masses,uncert = self.extract()
+        named_diffs,string_diffs,diffs,masses,uncert,failed_rows = self.extract()
         if len(named_diffs) > 1:
             M = calc_mass.generate_m(named_diffs,diffs,masses)
             b,R0,psi_bmeas = calc_mass.analysis(M,diffs,uncert)
@@ -130,7 +133,7 @@ class Controller(gui_main.MyFrame1):
             #Now print residuals (R0) into the last column in the grid.
             rows = self.m_grid1.GetNumberRows()
             to_table = np.transpose([string_diffs,diffs,uncert,R0])
-            self.rows_to_grid(to_table,self.m_grid1)
+            self.rows_to_grid(to_table,self.m_grid1,failed_rows)
             #And save the results.
             self.results = [masses,b,Ub] #update the class variable
             self.present_results()
@@ -154,18 +157,19 @@ class Controller(gui_main.MyFrame1):
         proj_file = None
         dlg = wx.FileDialog(self, "Choose a project file", 'dirname,space filler', "",
         wildcard, wx.OPEN | wx.MULTIPLE)
-        
+        dirname = ""
+        filename = ""
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
         dlg.Destroy()
-        return [dirname,filename]
+        return [dirname, filename]
     
-    def on_load_file(self,event):
-        dirname,filename = self.get_file_name()
+    def on_load_file(self, event):
+        dirname, filename = self.get_file_name()
         proj_file = os.path.join(dirname, filename)
         
-        if proj_file != None:
+        if proj_file != "":
             with open(proj_file,'r') as f:
                 reader = csv.reader(f,delimiter=',')
                 rows = []
@@ -174,20 +178,24 @@ class Controller(gui_main.MyFrame1):
                     #Note the first two rows are just header.
                 self.rows_to_grid(rows[2:],self.m_grid1)
             
-    def rows_to_grid(self,rows,grid):
-        """Put a list of rows into a specified grid. Enlarges or shrinks the grid to match the rows."""
+    def rows_to_grid(self, rows, grid, failed_rows=[]):
+        """Put a list of rows into a specified grid. Enlarges or shrinks the grid to match the rows.
+        Has an optional parameter, a list of rows that failed in reading and should therefore be skipped."""
         g_n = grid.GetNumberRows()
-        r_n = len(rows)
+        r_n = len(rows)+len(failed_rows)
         if g_n-r_n > 0:
             self.minus_rows(g_n-r_n,grid)
         elif g_n-r_n < 0:
             self.add_rows(r_n-g_n,grid)
+        rows_counter = 0
         for r in range(r_n):
-            for c in range(len(rows[r])):
-                grid.SetCellValue(r,c,str(rows[r][c]))
+            if r not in failed_rows:
+                for c in range(len(rows[rows_counter])):
+                    grid.SetCellValue(r,c,str(rows[rows_counter][c]))
+                rows_counter += 1
         self.Layout()
         
-    def on_save_results(self,event):
+    def on_save_results(self, event):
         dirname,filename = self.get_file_name()
         proj_file = os.path.join(dirname, filename)
         if proj_file != None:

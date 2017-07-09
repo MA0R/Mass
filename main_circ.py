@@ -7,7 +7,7 @@ import time #used for a time stamp in file name
 import csv #For saving the csv data files, and loading csv data files.
 
 import gui_circ #Gui of the circular algorithm.
-import notification_box #The litle pop up window for the mass instructions.
+from main_collect import Collector #The popup window for data collecting.
 
 import calc_circ #The analysis tool.
 import weighing #Circular weighing thread.
@@ -26,37 +26,14 @@ class Circ_Controller(gui_circ.MyFrame2):
         self.weigher = None
         self.popup = None
 
-    def on_run_auto(self, event):
-        """Coolects the run options from the input buttons and then
-        sends it to a independent thread. The thread then sends the
-        info back. The thread is then independent."""
-        port = self.m_comboBox3.GetValue()
-        masses = self.masses
-        positions = self.m_textCtrl1.GetValue().split(',')
-        positions = [int(p) for p in positions] #Make sure they are all ints
-        mass_positions = range(1,len(self.masses)+1)
-        reads_per_mass = 7 - len(masses)
-        parent = self
-        selection = self.m_comboBox2.GetValue()
-        if selection == 'Automatic':
-            run_option = 'AUTO'
-        else:
-            run_option = 'SEMI'
-        self.weigher = weighing.Thread(port,masses,mass_positions,reads_per_mass,parent,run_option)
-
-    def on_stop_thread(self,event):
-        """Calls abort on the thread, the thread can't be killed but this will
-        inform it that it is time to stop working now. It will stop when it wants."""
-        if self.weigher:
-            self.weigher.abort()
-
-    def update_popup(self,text):
-        self.m_staticText2.SetLabel(text)
+    def on_collect_data(self,event):
+        self.popup = Collector(self)
+        self.popup.setup(self.masses)
 
     def on_return(self,event):
         """Send the results back to parent frame, and save csv of data+results"""
         #Construct the file name for the csv data:
-        name = time.strftime("%Y.%m.%d.%H.%M.%S, ",time.localtime()) #Time stamp
+        name = time.strftime("%Y.%m.%d.%H.%M.%S",time.localtime()) #Time stamp
         for mass in self.masses:
             name += "_"+str(mass) #appends the masses involved.
         name += ".csv" #csv file type.
@@ -170,15 +147,6 @@ class Circ_Controller(gui_circ.MyFrame2):
         self.masses = masses
         self.set_cols(masses)
         self.set_rows(masses)
-        #List of integers, 1,2,3...number_of_masses
-        positions = range(1,len(masses)+1)
-        #Change it to a list of strings, '1','2'...
-        positions = [str(p) for p in positions]
-        #The .join method changes it to a singel string joined by ",": '1,2,3'
-        self.m_textCtrl1.SetValue(','.join(positions))
-        font = wx.Font(120, wx.NORMAL, wx.NORMAL, wx.NORMAL)
-        self.m_staticText2.SetFont(font)
-        self.m_staticText2.SetLabel("")
         
     def minus_rows(self,n,grid):
         last_position = grid.GetNumberRows() -1
