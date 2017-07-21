@@ -108,20 +108,19 @@ def analysis(M,diffs,uncert):
     Matrix maths to do the least squares.
     """
     Y = np.array(diffs) #Ensure it is a numpy object.
-    uncert = np.array(uncert)*0.000001
+    uncert = np.array(uncert)*1e-6 #unit here is in gram.
 
-    psi_y = np.diag(uncert**2/norm(uncert**2)) #actuall thats the same.
-    
+    psi_y = np.diag(uncert**2) #actuall thats the same.
+
     psi_b = inv( dot( tr(M), dot( inv(psi_y),M) ) )
     b = dot(psi_b, dot(tr(M), dot(inv(psi_y),Y)))
     R0 = (Y-dot(M,b))
+
     return [b,R0,psi_b]
 
 def buoyancy_uncert(M,b,psi_bmeas):
     """
-    Currenlty not working, (I think this is where the bug is).
-    The results are a little off from the example, but analysis function
-    works fine.
+    Buoyancy corrections to the uncertainty.
     """
     cnx = np.zeros(len(M))
     i = 0
@@ -133,11 +132,16 @@ def buoyancy_uncert(M,b,psi_bmeas):
         i+=1
     cmx = dot(tr(M),cnx)#create vector of affected comparisons
     cmx = [np.abs(c-1) for c in cmx]#make it 1 for unknown, 0 for reference standard.
+    
     reluncert = 0.1
-    Unbc = reluncert*b*cmx*1e-6
+    #Form variance covariance matrix for uncertainties due to no buoyancy corrections.
+    Unbc = reluncert*b*cmx*1e-6 
     psi_nbc = np.diag(Unbc**2) #diag is used to create a diagonal matrix here.
-    psi_b = psi_bmeas+psi_nbc
-    Ub = np.sqrt(np.diag(psi_b))#And here it returns the diagonal of a matrix.
+    psi_nbc = psi_nbc
+    psi_bmeas=psi_bmeas
+    psi_b = psi_bmeas+psi_nbc 
+    Ub = np.sqrt(np.diag(psi_b))#And here diag returns the diagonal of a matrix.
+    #print(Ub)
     return[Ub,psi_b]
 
 def save(filename,writing_rows):
@@ -153,11 +157,13 @@ def analyse_file(filename):
     M = generate_m(named_diffs,diffs,masses)
     b,R0,psi_bmeas = analysis(M,diffs,uncert)
     Ub,psi_b = buoyancy_uncert(M,b,psi_bmeas)
-    print(['Mass name','Value (g)','Meas uncert (ug)','uncert with buoyancy corr. (ug)'])
+    #print(type(psi_bmeas))
+    #print(['Mass name','Value (g)','Meas uncert (ug)','uncert with buoyancy corr. (ug)'])
     print(tr(np.array([masses,b,np.diag(psi_bmeas),Ub])))
+   
 
 if __name__ == "__main__":
-    d = analyse_file('2.csv')
+    d = analyse_file('1.csv')
 
 
     

@@ -8,14 +8,22 @@ import time
 import numpy as np
 
 class Thread(threading.Thread):
-    def __init__(self,port,masses,mass_positions,reads_per_mass,parent,run_option):
+    def __init__(self,port,masses,mass_positions,reads_per_mass,centerings,parent,run_option,num_cycles,simulated=False):
         threading.Thread.__init__(self)
         rm = visa.ResourceManager()
         self.balance = rm.open_resource(port)
+        if not simulated:
+            self.balance.baud_rate = 2400
+            self.balance.parity = visa.constants.Parity.even
+            self.balance.stop_bits = visa.constants.StopBits.one
+            self.balance.data_bits = 7
+        self.simulated = simulated
+        
         self.masses = masses
         self.mass_positions = mass_positions
         self.reads_per_mass = reads_per_mass
         self.parent = parent
+        self.num_cycles = num_cycles
         self.run_option = run_option
         self.first_read_time = None #Time of first reading
         self._want_abort = False
@@ -51,7 +59,6 @@ class Thread(threading.Thread):
                     s = "Set mass:\n"+str(mass)
                     self.write_to_popup(s)
                     self.report_event("Reading {} for mass {}".format(reading,mass))
-                    self.report_event("Waiting for [space] key press")
                     #Could wait for balance to read something similar
                     #to some nominal value, then waits for it to settle
                     #and finally reads, somehow avoiding settling down
@@ -73,20 +80,21 @@ class Thread(threading.Thread):
         #How to handle multople readings and centerings?
         self.reset_instrument_auto()
         result_rows = []
-        
-        for reading in range(self.reads_per_mass):
-            row = []
-            string = "Measuring"
-            for pos in self.mass_positions:
-                if not self._want_abort:
-                    string +="."
-                    self.write_to_popup(string)
-                    #print("Reading at pos: "+str(pos))
-                    self.position(pos)
-                    weight_reading = self.read_weight()
-                    row.append(self.time_from_first())
-                    row.append(weight_reading)
-            result_rows.append(row)
+        for cycle in range(self.num_cycles):
+            for reading in range(self.reads_per_mass):
+                row = []
+                string = "Measuring"
+                for pos,mass in zip(self.mass_positions,self.masses):
+                    if not self._want_abort:
+                        self.report_event("Reading number {} for mass {}".format(reading,mass))
+                        string +="."
+                        self.write_to_popup(string)
+                        #print("Reading at pos: "+str(pos))
+                        self.position(pos)
+                        weight_reading = self.read_weight()
+                        row.append(self.time_from_first())
+                        row.append(weight_reading)
+                result_rows.append(row)
         self.write_to_popup("Done")
         self.balance.close()
         self.return_results(result_rows)
@@ -134,17 +142,56 @@ class Thread(threading.Thread):
     def report_event(self,text):
         """Report some text, calls parent.report_event. This prints to the parent event report box."""
         #Perhaps save a log file idk.
-        self.parent.report_event(text)
+        if self.parent:
+            self.parent.report_event(text)
+        else:
+            print(text)
         
     def position(self,pos):
         """A sub routine to positions masses, incomplete. Used by the auto measuring thing"""
-        self.balance.write("LIFT")
-        self.wait(3)
-        self.balance.write("TURN 1")
-        self.wait(3)
-        self.balance.write("SINK")
-        self.wait(3)
-
+        self.lift()
+        self.lift()
+        self.report_event("Moving to "+str(pos))
+        self.lift_sink_move("MOVE"+str(pos))
+        self.sink()
+        self.sink()
+        self.wait(20)
+        
+    def lift(self):
+        self.report_event("Lifting")
+        self.lift_sink_move("LIFT")
+        
+    def sink(self):
+        self.report_event("Sinking")
+        self.lift_sink_move("SINK")
+        
+    def lift_sink_move(self,word):
+        """Lift sink or move once and check for ready state from balance.
+        If it takes too long just abort"""
+        start_time = time.time()
+        self.balance.write(word)
+        done = False
+        while not done:
+            if self._want_abort:
+                break
+            try:
+                r = self.balance.read()
+                self.report_event(repr(r))
+            except visa.VisaIOError:
+                r=''
+                
+            if not self.simulated:
+                if r == 'ready\r\n':
+                    done = True
+                elif r =='ERROR: In weighing position already.ready\r\n':
+                    self.report_event("Balance was already in position")
+                    done = True
+                elif time.time()-start_time > 120:
+                    self.report_event("Waited too long")
+            else:
+                self.report_event("Simulated, not waiting for 'ready'")
+                done = True
+                
     def read_weight(self):
         """A funcntion to read the weight of the balance once it is stable"""
         self.balance.write("S")
@@ -197,6 +244,8 @@ class Thread(threading.Thread):
         """Waits until space key is hit, checks the abort flag."""
         #Waits for space key to be pressed in main table
         self.space_pressed = False
+        if not self._want_abort:
+            self.report_event("Waiting for [space] key press")
         while not self.space_pressed:
             if self._want_abort:
                 break
@@ -204,8 +253,9 @@ class Thread(threading.Thread):
     def wait(self, period):
         """Waits a desired period of time, checking the abort flag."""
         initial = time.time()
+        period = 0
         if self._want_abort == False:
-            #print("Waiting {} seconds".format(period))
+            self.report_event("Waiting for {}s".format(period))
             while time.time()-initial < period:
                 if self._want_abort:
                     period = 0
@@ -219,5 +269,8 @@ if __name__ == "__main__":
     mass_positions = [1,2]
     reads_per_mass = 3
     parent = None
-    run_option = 'SEMI'
-    a = Thread(port,masses,mass_positions,reads_per_mass,parent,run_option)
+    run_option = 'AUTO'
+    centerings = 1
+    num_cycles = 1
+    a = Thread(port,masses,mass_positions,reads_per_mass,centerings,parent,run_option,num_cycles)
+    

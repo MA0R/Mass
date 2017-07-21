@@ -18,7 +18,7 @@ import wx.grid
 class MyFrame2 ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 913,414 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 907,418 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -26,16 +26,54 @@ class MyFrame2 ( wx.Frame ):
 		gbSizer2.SetFlexibleDirection( wx.BOTH )
 		gbSizer2.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
-		self.m_button4 = wx.Button( self, wx.ID_ANY, u"Compute", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button4, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolledWindow1.SetScrollRate( 5, 5 )
+		self.m_scrolledWindow1.SetMinSize( wx.Size( 920,405 ) )
 		
-		self.m_button5 = wx.Button( self, wx.ID_ANY, u"Return", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button5, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		gbSizer6 = wx.GridBagSizer( 0, 0 )
+		gbSizer6.SetFlexibleDirection( wx.BOTH )
+		gbSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
-		self.m_button24 = wx.Button( self, wx.ID_ANY, u"Collect data", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer2.Add( self.m_button24, wx.GBPosition( 0, 2 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		self.m_textCtrl6 = wx.TextCtrl( self.m_scrolledWindow1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer6.Add( self.m_textCtrl6, wx.GBPosition( 3, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
-		self.m_grid2 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText6 = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Balance tolerance:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText6.Wrap( -1 )
+		gbSizer6.Add( self.m_staticText6, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		
+		self.m_grid4 = wx.grid.Grid( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		
+		# Grid
+		self.m_grid4.CreateGrid( 6, 3 )
+		self.m_grid4.EnableEditing( True )
+		self.m_grid4.EnableGridLines( True )
+		self.m_grid4.EnableDragGridSize( False )
+		self.m_grid4.SetMargins( 0, 0 )
+		
+		# Columns
+		self.m_grid4.SetColSize( 0, 120 )
+		self.m_grid4.SetColSize( 1, 120 )
+		self.m_grid4.SetColSize( 2, 120 )
+		self.m_grid4.EnableDragColMove( False )
+		self.m_grid4.EnableDragColSize( True )
+		self.m_grid4.SetColLabelSize( 30 )
+		self.m_grid4.SetColLabelValue( 0, u"Item" )
+		self.m_grid4.SetColLabelValue( 1, u"Value" )
+		self.m_grid4.SetColLabelValue( 2, u"Uncert" )
+		self.m_grid4.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Rows
+		self.m_grid4.EnableDragRowSize( True )
+		self.m_grid4.SetRowLabelSize( 80 )
+		self.m_grid4.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Label Appearance
+		
+		# Cell Defaults
+		self.m_grid4.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		gbSizer6.Add( self.m_grid4, wx.GBPosition( 2, 0 ), wx.GBSpan( 1, 4 ), wx.ALL, 5 )
+		
+		self.m_grid2 = wx.grid.Grid( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
 		self.m_grid2.CreateGrid( 6, 10 )
@@ -84,39 +122,22 @@ class MyFrame2 ( wx.Frame ):
 		
 		# Cell Defaults
 		self.m_grid2.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		gbSizer2.Add( self.m_grid2, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 6 ), wx.ALL, 5 )
+		gbSizer6.Add( self.m_grid2, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 6 ), wx.ALL, 5 )
 		
-		self.m_grid4 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_button24 = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Collect data", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer6.Add( self.m_button24, wx.GBPosition( 0, 2 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
-		# Grid
-		self.m_grid4.CreateGrid( 5, 3 )
-		self.m_grid4.EnableEditing( True )
-		self.m_grid4.EnableGridLines( True )
-		self.m_grid4.EnableDragGridSize( False )
-		self.m_grid4.SetMargins( 0, 0 )
+		self.m_button5 = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Return", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer6.Add( self.m_button5, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
-		# Columns
-		self.m_grid4.SetColSize( 0, 120 )
-		self.m_grid4.SetColSize( 1, 120 )
-		self.m_grid4.SetColSize( 2, 120 )
-		self.m_grid4.EnableDragColMove( False )
-		self.m_grid4.EnableDragColSize( True )
-		self.m_grid4.SetColLabelSize( 30 )
-		self.m_grid4.SetColLabelValue( 0, u"Item" )
-		self.m_grid4.SetColLabelValue( 1, u"Value" )
-		self.m_grid4.SetColLabelValue( 2, u"Uncert" )
-		self.m_grid4.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		self.m_button4 = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Compute", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer6.Add( self.m_button4, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 		
-		# Rows
-		self.m_grid4.EnableDragRowSize( True )
-		self.m_grid4.SetRowLabelSize( 80 )
-		self.m_grid4.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
-		# Label Appearance
-		
-		# Cell Defaults
-		self.m_grid4.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		gbSizer2.Add( self.m_grid4, wx.GBPosition( 2, 0 ), wx.GBSpan( 1, 4 ), wx.ALL, 5 )
+		self.m_scrolledWindow1.SetSizer( gbSizer6 )
+		self.m_scrolledWindow1.Layout()
+		gbSizer6.Fit( self.m_scrolledWindow1 )
+		gbSizer2.Add( self.m_scrolledWindow1, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND |wx.ALL, 5 )
 		
 		
 		self.SetSizer( gbSizer2 )
@@ -125,22 +146,26 @@ class MyFrame2 ( wx.Frame ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.m_button4.Bind( wx.EVT_BUTTON, self.on_compute )
-		self.m_button5.Bind( wx.EVT_BUTTON, self.on_return )
+		self.m_grid2.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_grid_char )
 		self.m_button24.Bind( wx.EVT_BUTTON, self.on_collect_data )
+		self.m_button5.Bind( wx.EVT_BUTTON, self.on_return )
+		self.m_button4.Bind( wx.EVT_BUTTON, self.on_compute )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def on_compute( self, event ):
+	def on_grid_char( self, event ):
+		event.Skip()
+	
+	def on_collect_data( self, event ):
 		event.Skip()
 	
 	def on_return( self, event ):
 		event.Skip()
 	
-	def on_collect_data( self, event ):
+	def on_compute( self, event ):
 		event.Skip()
 	
 

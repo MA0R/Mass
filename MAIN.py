@@ -14,12 +14,15 @@ import os.path #For joining some file path names.
 import gui_main #Gui of the main parent table.
 import calc_mass #Final least squares for mass calculations.
 from main_circ import Circ_Controller #Circullar controller
+from main_set import Set_Loader
+
 
 class Controller(gui_main.MyFrame1):
     def __init__(self, parent):
         gui_main.MyFrame1.__init__(self, parent)
         wx.grid.Grid.__bases__ += (pywxgrideditmixin.PyWXGridEditMixin,)
         self.m_grid1.__init_mixin__()
+        self.m_grid3.__init_mixin__()
         self.Show(True)
         self.results = [[0],[0],[0]]
         self.new = None #The pop up window for circular algorithm handling.
@@ -32,7 +35,12 @@ class Controller(gui_main.MyFrame1):
         grid.AppendRows(n, True)
         
     def on_minus_row(self, event):
-        self.minus_rows(1,self.m_grid1)
+        selected_rows = self.m_grid1.GetSelectedRows()
+        if selected_rows == []:
+            self.minus_rows(1,self.m_grid1)
+        else:
+            for row in selected_rows[::-1]: #must read the rows form end to start!
+                self.m_grid1.DeleteRows(row,1)
         self.Layout()
         
     def minus_rows(self,n,grid):
@@ -61,18 +69,17 @@ class Controller(gui_main.MyFrame1):
     def recieve_result(self, writing_rows, supp_writ_rows, sigma):
         """
         Recieve the result from the circular algorithm, and print
-        just the differences to the correct place in the table
+        just the differences to the correct place in the table. If
+        multiple differences are give, it takes the averge of them.
         """
-        print(writing_rows)
+        
         for input_row in writing_rows:
             for row in range(self.m_grid1.GetNumberRows()):
                 mass_name = self.m_grid1.GetCellValue(row,0)
 
                 if mass_name == str(input_row[0])+'-'+str(input_row[1]):
                     self.m_grid1.SetCellValue(row,1,str(input_row[2]))
-                    #Only need the difference value printed.
-                    #self.m_grid1.SetCellValue(row,2,str(input_row[3]))
-                    #self.m_grid1.SetCellValue(row,3,str(sigma))
+                    self.m_grid1.SetCellValue(row,2,str(sigma))
                     
     def extract(self):
         """
@@ -85,14 +92,20 @@ class Controller(gui_main.MyFrame1):
         uncrtnties = []  #The uncertainties of the balances.
         string_diffs = []#The full differences as strings such as '50-50s'
         failed_rows = [] #Rows that did not have sufficient info.
-        
+
         rows = self.m_grid1.GetNumberRows()
+        
+        selected_rows = self.m_grid1.GetSelectedRows()
+        if selected_rows == []:
+            selected_rows = range(rows)
+        
         for row in range(rows):
             #We have 3 cels to read.
             named_diff = self.m_grid1.GetCellValue(row,0).replace(' ','')
             diff = self.m_grid1.GetCellValue(row,1).replace(' ','')
             uncert = self.m_grid1.GetCellValue(row,2).replace(' ','')
-            if all([named_diff,diff,uncert]): #So if none of those are empty.
+            if all([named_diff,diff,uncert]) and row in selected_rows:
+                #So if none of those are empty, and if its in the selected rows.
                 string_diffs.append(named_diff)
                 #This next step stores information seemingly incorrectly,
                 #the string is split at thte "-" signs so we replace each "+"
@@ -135,12 +148,41 @@ class Controller(gui_main.MyFrame1):
             to_table = np.transpose([string_diffs,diffs,uncert,R0])
             self.rows_to_grid(to_table,self.m_grid1,failed_rows)
             #And save the results.
-            self.results = [masses,b,Ub] #update the class variable
+            self.results = [masses,b,Ub,2*Ub] #update the class variable
             self.present_results()
         else:
             #Perhaps change to a pop up window that closes on ok.
             print("Cannot run, no data loaded")
+            
+    def on_load_set(self,event):
+        dirname, filename = self.get_file_name()
+        proj_file = os.path.join(dirname, filename)
+        self.set_loader = Set_Loader(self)
+        self.set_loader.recieve_file_name(proj_file)
         
+    def set_to_table(self,proj_file,set_id):
+        if proj_file != "":
+            old_rows = self.m_grid1.GetNumberRows()
+            names = []
+            #collect all names already in grid
+            for r in range(old_rows):
+                name = self.m_grid1.GetCellValue(r,0)
+                names.append(name)
+
+            last_row = old_rows
+            with open(proj_file,'r') as f:
+                reader = csv.reader(f,delimiter=',')
+                for row in reader:
+                    if row[0] not in names:
+                        self.add_rows(1,self.m_grid1)
+                        last_row+=1
+                        for c in range(min(4,len(row))):
+                            #-1 since we start counting at zero
+                            value = row[c]
+                            if c == 0: #Add the set identifier to the name.
+                                value = str(value)+str(set_id)
+                            self.m_grid1.SetCellValue(last_row-1,c,value)            
+    
     def present_results(self):
         """Put results into the results grid."""
         results = np.transpose(np.array(self.results))
@@ -174,10 +216,12 @@ class Controller(gui_main.MyFrame1):
                 reader = csv.reader(f,delimiter=',')
                 rows = []
                 for row in reader:
+                    if row[0] in ('Results',''):
+                        break
                     rows.append(row)
                     #Note the first two rows are just header.
                 self.rows_to_grid(rows[2:],self.m_grid1)
-            
+    
     def rows_to_grid(self, rows, grid, failed_rows=[]):
         """Put a list of rows into a specified grid. Enlarges or shrinks the grid to match the rows.
         Has an optional parameter, a list of rows that failed in reading and should therefore be skipped."""
@@ -198,25 +242,53 @@ class Controller(gui_main.MyFrame1):
     def on_save_results(self, event):
         dirname,filename = self.get_file_name()
         proj_file = os.path.join(dirname, filename)
+            
         if proj_file != None:
             with open(proj_file,'wb') as f:
+                rows = self.m_grid1.GetNumberRows()
+                selected_rows = self.m_grid1.GetSelectedRows()
+                if selected_rows == []:
+                    selected_rows = range(rows)
                 writer = csv.writer(f,delimiter=',')
-                writer.writerow(['Results file'])
+                writer.writerow(['Input data'])
                 writer.writerow(['Masses','Difference (g)','Uncert (ug)','Residual (ug)'])
-                writer.writerows(np.transpose(self.results))
-            data_name = "lesq_"+filename
-            data_file = os.path.join(dirname, data_name)
-
-            with open(data_file,'wb') as f:
-                writer = csv.writer(f,delimiter=',')
-                writer.writerow(['Data file'])
-                writer.writerow(['Masses','Difference (g)','Uncert (ug)','Residual (ug)'])
-                for r in range(self.m_grid1.GetNumberRows()):
+                for r in selected_rows:
                     row = []
                     for c in range(self.m_grid1.GetNumberCols()):
                         row.append(self.m_grid1.GetCellValue(r,c))
                     writer.writerow(row)
+                    
+                writer.writerow(['Results'])
+                writer.writerow(['Masses name','Value (g)','Uncert (ug)','95% ci (ug)'])
+                writer.writerows(np.transpose(self.results))
+                
+    def on_save_set(self,event):
+        dirname,filename = self.get_file_name()
+        proj_file = os.path.join(dirname, filename)
 
+        if proj_file != None:
+            with open(proj_file,'wb') as f:
+                rows = self.m_grid3.GetNumberRows()
+                selected_rows = self.m_grid3.GetSelectedRows()
+                if selected_rows == []:
+                    selected_rows = range(rows)
+                writer = csv.writer(f,delimiter=',')
+                for r in selected_rows:
+                    row = []
+                    for c in range(self.m_grid3.GetNumberCols()):
+                        val = self.m_grid3.GetCellValue(r,c)
+                        if c==0: #Just the value, need to remove all letters.
+                            val = self.nom_from_str(val)
+                        row.append(val)
+                    writer.writerow(row)
+                    
+    def nom_from_str(self,mass):
+        nom = ''
+        for s in mass:
+            if s in '0123456789':
+                nom+=s
+        return nom
+        
 if __name__ == "__main__":
     #Should usually be run as main, but can be run as a child too.
     app = wx.App()
