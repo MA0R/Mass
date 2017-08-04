@@ -6,15 +6,15 @@ import wx
 import wx.xrc
 import wx.grid
 import numpy as np
-import pywxgrideditmixin #Mixing to allow ctrl+v adn ctr+c etc for table.
 import time #Used for a time stamp in file name.
 import csv #For saving the csv data files, and loading csv data files.
 import os.path #For joining some file path names.
 
-import gui_main #Gui of the main parent table.
-import calc_mass #Final least squares for mass calculations.
-from main_circ import Circ_Controller #Circullar controller
-from main_set import Set_Loader
+import modules.pywxgrideditmixin as pywxgrideditmixin #Mixing to allow ctrl+v adn ctr+c etc for table.
+import modules.gui_main as gui_main #Gui of the main parent table.
+import modules.calc_mass as calc_mass #Final least squares for mass calculations.
+from modules.main_circ import Circ_Controller #Circullar controller
+from modules.main_set import Set_Loader
 
 
 class Controller(gui_main.MyFrame1):
@@ -58,7 +58,8 @@ class Controller(gui_main.MyFrame1):
         for row in rows:
             mass_names =  self.m_grid1.GetCellValue(row,0)
             mass1,mass2 = mass_names.split('-',1)
-            
+            mass1 = mass1.replace('-','+')
+            mass2 = mass2.replace('-','+')
             if mass1 not in masses and mass1 not in (u'',u' ','',' '):
                 masses.append(mass1)
             if mass2 not in masses and mass2 not in (u'',u' ','',' '):
@@ -76,9 +77,17 @@ class Controller(gui_main.MyFrame1):
         for input_row in writing_rows:
             for row in range(self.m_grid1.GetNumberRows()):
                 mass_name = self.m_grid1.GetCellValue(row,0)
-
-                if mass_name == str(input_row[0])+'-'+str(input_row[1]):
+                #First do first minus the second, replacing + with - in second.
+                #first_sec = first minus second
+                first_sec = input_row[0]+'-'+input_row[1].replace('+','-')
+                #sec_first is secon minus first
+                sec_first = input_row[1]+'-'+input_row[0].replace('+','-')
+                if mass_name == first_sec:
                     self.m_grid1.SetCellValue(row,1,str(input_row[2]))
+                    self.m_grid1.SetCellValue(row,2,str(sigma))
+                elif mass_name == sec_first:
+                    #Then we need the negative of the difference, but ofcourse sigma is the same.
+                    self.m_grid1.SetCellValue(row,1,str(-1*float(input_row[2])))
                     self.m_grid1.SetCellValue(row,2,str(sigma))
                     
     def extract(self):
@@ -155,12 +164,14 @@ class Controller(gui_main.MyFrame1):
             print("Cannot run, no data loaded")
             
     def on_load_set(self,event):
+        """Selects a file name, and calls set_to_table to print the set at the bottom of the grid"""
         dirname, filename = self.get_file_name()
         proj_file = os.path.join(dirname, filename)
         self.set_loader = Set_Loader(self)
         self.set_loader.recieve_file_name(proj_file)
         
     def set_to_table(self,proj_file,set_id):
+        """Reads a set file and appends it to the bottom of the grid."""
         if proj_file != "":
             old_rows = self.m_grid1.GetNumberRows()
             names = []
@@ -283,6 +294,8 @@ class Controller(gui_main.MyFrame1):
                     writer.writerow(row)
                     
     def nom_from_str(self,mass):
+        """Nominal mass from string, following the convention:
+        mass_name = [nominal_mass_value][set identifier] such as 100MAd."""
         nom = ''
         for s in mass:
             if s in '0123456789':

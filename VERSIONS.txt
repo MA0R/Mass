@@ -1,0 +1,15 @@
+Last updated 27/06/2017
+
+"wx": Version 2.8.10
+"visa": 1.8
+
+wx is needed in order to run the GUI. Without it, it is difficult but both the circular
+weghing least squares and the final mass calculations have the ability to read a csv
+file, and operate on that.
+
+visa is needed to communicate with the instruments, for the automatic gathering of data.
+PyVisa 1.8 is not compatible with 1.5 or earlier, but hopefully it maintains backwards
+compatibility with 1.8 for a while.
+To run visa, the national instruments visa needs to be downloaded
+(NIVISA541full_doaloader.exe) as well as the python 
+wrapper "pyvisa", can be downloaded using "pip install pyvisa" in the command prompt.
